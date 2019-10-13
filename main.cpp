@@ -28,14 +28,14 @@ Color shootRay(const Ray &ray, const Scene &scene, int depth) {
         if (reflectionPercent) {
             auto normal = intersection->surfaceNormal();
 
+            auto newRayOrigin = intersection->position() + normal * 0.5f;
             auto delta = normal * 2 * ray.direction().dot(normal);
             auto newRayDirection = ray.direction() - delta;
             newRayDirection = newRayDirection.normalize();
 
-            auto newRayOrigin = intersection->position() + normal * 0.5f;
-
             auto newRay = Ray(newRayOrigin, newRayDirection);
             auto reflectionColor = shootRay(newRay, scene, depth + 1);
+
             color = reflectionColor * reflectionPercent.value() + color * (1 - reflectionPercent.value());
         }
 

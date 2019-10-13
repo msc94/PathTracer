@@ -1,6 +1,9 @@
 #pragma once
 
 #include <cmath>
+#include <cassert>
+
+#include "utils.h"
 
 template<class T>
 struct Vec3T {
@@ -86,3 +89,8 @@ public:
 
 using Vec3 = Vec3T<float>;
 using Color = Vec3T<int>;
+
+namespace vectorutils {
+    Vec3 randomVector(float low, float high);
+    Vec3 createRandomVectorInHemisphere(Vec3 other);
+}

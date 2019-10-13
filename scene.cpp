@@ -24,13 +24,13 @@ void Scene::initialize() {
     _light = std::make_unique<Sphere>(Vec3(0.0f, 40.0f, 0.0f), 5.0, whiteEmittingColor);
 
     _objects.push_back(
-        std::make_unique<Sphere>(Vec3(5.0f, -3.0f, 50.0f), 5.0, Material::red())
+        std::make_unique<Sphere>(Vec3(5.0f, -3.0f, 50.0f), 5.0, Material::red().setReflectingPercent(0.1f))
     );
     _objects.push_back(
-        std::make_unique<Sphere>(Vec3(-5.0f, 5.0f, 30.0f), 5.0, Material::green())
+        std::make_unique<Sphere>(Vec3(-5.0f, 5.0f, 30.0f), 5.0, Material::green().setReflectingPercent(0.2f))
     );
     _objects.push_back(
-        std::make_unique<Sphere>(Vec3(15.0f, 15.0f, 60.0f), 5.0, Material::blue().setReflectingPercent(0.75f))
+        std::make_unique<Sphere>(Vec3(15.0f, 15.0f, 60.0f), 5.0, Material::blue().setReflectingPercent(1.0f))
     );
     _objects.push_back(
         std::make_unique<Sphere>(Vec3(-15.0f, -15.0f, 60.0f), 5.0, Material::pink())
