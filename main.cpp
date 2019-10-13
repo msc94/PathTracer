@@ -15,6 +15,57 @@
 
 
 Color shootRay(const Ray &ray, const Scene &scene, int depth) {
+    auto intersection = scene.firstIntersection(ray);
+    if (intersection) {
+        auto material = intersection->material();
+        auto emittingColor = material.emittingColor();
+        if (emittingColor) {
+            return emittingColor.value();
+        }
+
+        auto color = material.color();
+        auto reflectionPercent = material.reflectionPercent();
+        if (reflectionPercent) {
+            auto normal = intersection->surfaceNormal();
+
+            auto delta = normal * 2 * ray.direction().dot(normal);
+            auto newRayDirection = ray.direction() - delta;
+            newRayDirection = newRayDirection.normalize();
+
+            auto newRayOrigin = intersection->position() + normal * 0.5f;
+
+            auto newRay = Ray(newRayOrigin, newRayDirection);
+            auto reflectionColor = shootRay(newRay, scene, depth + 1);
+            color = reflectionColor * reflectionPercent.value() + color * (1 - reflectionPercent.value());
+        }
+
+        
+        auto intersectionPosition = intersection->position();
+
+        //// Easy to debug intersection problems. Use with the last object in the scene (uncommented).
+        //if (intersectionPosition.y() > 4.5f) {
+        //    int breakhere = 3;
+        //}
+
+        // Shoot ray to the light
+        auto lightPosition = scene.light();
+        auto lightRayDirection = lightPosition - intersection->position();
+        lightRayDirection = lightRayDirection.normalize();
+
+        // Move the origin a little bit out of the object so it does not hit itself
+        auto lightRayOrigin = intersection->position() + intersection->surfaceNormal() * 0.5f;
+        auto rayToLight = Ray(lightRayOrigin, lightRayDirection);
+
+
+        auto cosBetweenNormalAndLight = lightRayDirection.dot(intersection->surfaceNormal());
+        cosBetweenNormalAndLight = std::max(0.2f, cosBetweenNormalAndLight);
+        color = color * cosBetweenNormalAndLight;
+
+        if (!scene.hitsLight(rayToLight)) {
+            color = color * 0.8;
+        }
+        return color;
+    }
     return Color();
 }
 
@@ -23,45 +74,9 @@ Color shootRayforPixel(int x, int y, const Scene &scene) {
     // TODO: This hard codes the camera direction vector. Change.
     auto pointOnVirtualScreen = camera.origin() + Vec3(float(x), float(y), 500.0f);
     auto rayDirection = pointOnVirtualScreen - camera.origin();
+    rayDirection = rayDirection.normalize();
     auto ray = Ray(camera.origin(), rayDirection);
-
-    auto intersection = scene.firstIntersection(ray);
-    if (intersection) {
-        auto color = intersection->material().color();
-
-        auto intersectionPosition = intersection->position();
-
-        // Easy to debug intersection problems. Use with the last object in the scene (uncommented).
-        if (intersectionPosition.y() > 4.5f) {
-            int breakhere = 3;
-        }
-
-        // Shoot ray to the light
-        auto lightPosition = scene.light();
-        auto lightRayDirection = lightPosition - intersection->position();
-
-        // Move the origin a little bit out of the object so it does not hit itself
-        auto lightRayOrigin = intersection->position() + intersection->surfaceNormal() * 0.5f;
-        auto rayToLight = Ray(lightRayOrigin, lightRayDirection);
-
-        lightRayDirection = lightRayDirection.normalize();
-        rayDirection = rayDirection.normalize();
-
-        // TODO: Why do we have to negate here? Both directions should give us the correct cosine.
-        auto cosBetweenNormalAndLight = lightRayDirection.dot(intersection->surfaceNormal());
-        cosBetweenNormalAndLight = std::max(0.2f, cosBetweenNormalAndLight);
-        color = color * cosBetweenNormalAndLight;
-
-        auto lightIntersection = scene.firstIntersection(rayToLight);
-        if (lightIntersection) {
-            auto position = lightIntersection->position();
-            // We hit the world
-            color = color * 0.8;
-            // color = Color();
-        }
-        return color;
-    }
-    return Color(70, 70, 70);
+    return shootRay(ray, scene, 0);
 }
 
 int main(int argc, char **argv) {

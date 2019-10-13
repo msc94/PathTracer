@@ -79,7 +79,7 @@ public:
         );
     }
 
-    VecType normalize() const {
+    [[nodiscard]] VecType normalize() const {
         return *this / length();
     }
 };
