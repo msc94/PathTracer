@@ -21,3 +21,11 @@ Vec3 vectorutils::createRandomVectorInHemisphere(Vec3 other) {
 
     return randomVec;
 }
+
+Color colorutils::multiplyColors(Color a, Color b) {
+    return Color(
+        a.x() * b.x(),
+        a.y() * b.y(),
+        a.z() * b.z()
+    ) / 255;
+}

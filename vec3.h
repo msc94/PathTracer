@@ -85,6 +85,14 @@ public:
     [[nodiscard]] VecType normalize() const {
         return *this / length();
     }
+
+    VecType clamp(T min, T max) {
+        return VecType(
+            std::clamp(_x, min, max),
+            std::clamp(_y, min, max),
+            std::clamp(_z, min, max)
+        );
+    }
 };
 
 using Vec3 = Vec3T<float>;
@@ -93,4 +101,8 @@ using Color = Vec3T<int>;
 namespace vectorutils {
     Vec3 randomVector(float low, float high);
     Vec3 createRandomVectorInHemisphere(Vec3 other);
+}
+
+namespace colorutils {
+    Color multiplyColors(Color a, Color b);
 }

@@ -118,6 +118,7 @@
       <SDLCheck>true</SDLCheck>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp17</LanguageStandard>
+      <AdditionalOptions>/Qpar /Qpar-report %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -132,6 +133,7 @@
     <ClCompile Include="triangle.cpp" />
     <ClCompile Include="utils.cpp" />
     <ClCompile Include="vec3.cpp" />
+    <ClCompile Include="vec3_simd.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="camera.h" />
@@ -144,6 +146,7 @@
     <ClInclude Include="triangle.h" />
     <ClInclude Include="utils.h" />
     <ClInclude Include="vec3.h" />
+    <ClInclude Include="vec3_simd.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
