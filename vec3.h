@@ -4,6 +4,7 @@
 #include <cassert>
 
 #include "utils.h"
+#include "vec3_simd.h"
 
 template<class T>
 struct Vec3T {
@@ -95,7 +96,7 @@ public:
     }
 };
 
-using Vec3 = Vec3T<float>;
+using Vec3 = SimdVector3;
 using Color = Vec3T<int>;
 
 namespace vectorutils {

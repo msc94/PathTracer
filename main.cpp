@@ -8,6 +8,7 @@
 #include <cstdio>
 #include <future>
 #include <chrono>
+#include <ctime>
 
 #define SDL_MAIN_HANDLED
 #include <SDL2/SDL.h>
@@ -38,8 +39,9 @@ Color shootRay(const Ray &ray, const Scene &scene, int depth) {
     // return selfColor;
 
     // Shoot a random ray, to simulate global illumination
-    auto randomDirection = vectorutils::createRandomVectorInHemisphere(intersection->surfaceNormal());
-    auto newRay = Ray(intersection->position(), randomDirection);
+    auto newRayDirection = vectorutils::createRandomVectorInHemisphere(intersection->surfaceNormal());
+    auto newRayOrigin = intersection->position() + intersection->surfaceNormal() * 0.5f;
+    auto newRay = Ray(newRayOrigin, newRayDirection);
     auto randomVecColor = shootRay(newRay, scene, depth + 1);
     randomVecColor = randomVecColor * 0.7f;
     return colorutils::multiplyColors(selfColor, randomVecColor);
@@ -127,8 +129,8 @@ int main(int argc, char **argv) {
 
     // Shoot rays
     // TODO: Get orthogonal plane to direction vector?
-    for (auto x = 0; x < WINDOW_WIDTH; x++) {
-        for (auto y = 0; y < WINDOW_WIDTH; y++) {
+    for (auto x = 50; x < WINDOW_WIDTH; x++) {
+        for (auto y = 50; y < WINDOW_WIDTH; y++) {
             auto pixelColorLambda = [WINDOW_WIDTH, WINDOW_HEIGHT, &scene = std::as_const(scene)](int x, int y) {
                 PixelWork work = {};
                 work.x = x;
@@ -138,7 +140,7 @@ int main(int argc, char **argv) {
                 // Positive y is up in world space, but in screen (sdl) space its down
                 auto moved_y = (WINDOW_WIDTH / 2) - y;
 
-                const int NUM_SAMPLES = 1024;
+                const int NUM_SAMPLES = 4096;
                 for (auto i = 0; i < NUM_SAMPLES; i++) {
                     work.pixelColor = work.pixelColor + shootRayforPixel(moved_x, moved_y, scene);
                 }

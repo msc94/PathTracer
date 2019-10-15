@@ -117,7 +117,10 @@ void Scene::initialize() {
 }
 
 std::optional<Intersection> Scene::firstIntersection(const Ray &ray) const {
-    std::vector<Intersection> intersections;
+    auto intersections = std::vector<Intersection>();
+    // Make this reasonable sized, so we don't hit as many array resizings.
+    intersections.reserve(16);
+
     for (const auto &object : _objects) {
         auto intersection = object->intersect(ray);
         if (intersection) {
