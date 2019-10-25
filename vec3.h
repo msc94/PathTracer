@@ -96,6 +96,7 @@ public:
     }
 };
 
+// using Vec3 = Vec3T<float>;
 using Vec3 = SimdVector3;
 using Color = Vec3T<int>;
 

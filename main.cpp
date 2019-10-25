@@ -9,6 +9,9 @@
 #include <future>
 #include <chrono>
 #include <ctime>
+#include <atomic>
+#include <chrono>
+#include <fmt/format.h>
 
 #define SDL_MAIN_HANDLED
 #include <SDL2/SDL.h>
@@ -17,9 +20,14 @@
 #include "ray.h"
 #include "vec3.h"
 
+namespace mainvariables {
+    std::atomic<int> numberOfRaysShot = 0;
+}
 
 Color shootRay(const Ray &ray, const Scene &scene, int depth) {
-    const int MAX_DEPTH = 3;
+    mainvariables::numberOfRaysShot++;
+
+    const int MAX_DEPTH = 5;
     if (depth > MAX_DEPTH) {
         return Color(50, 50, 50);
     }
@@ -43,7 +51,7 @@ Color shootRay(const Ray &ray, const Scene &scene, int depth) {
     auto newRayOrigin = intersection->position() + intersection->surfaceNormal() * 0.5f;
     auto newRay = Ray(newRayOrigin, newRayDirection);
     auto randomVecColor = shootRay(newRay, scene, depth + 1);
-    randomVecColor = randomVecColor * 0.7f;
+    randomVecColor = randomVecColor * 0.8f;
     return colorutils::multiplyColors(selfColor, randomVecColor);
 
     auto color = Color();
@@ -129,8 +137,8 @@ int main(int argc, char **argv) {
 
     // Shoot rays
     // TODO: Get orthogonal plane to direction vector?
-    for (auto x = 50; x < WINDOW_WIDTH; x++) {
-        for (auto y = 50; y < WINDOW_WIDTH; y++) {
+    for (auto x = 50; x < WINDOW_WIDTH - 50; x++) {
+        for (auto y = 50; y < WINDOW_WIDTH - 50; y++) {
             auto pixelColorLambda = [WINDOW_WIDTH, WINDOW_HEIGHT, &scene = std::as_const(scene)](int x, int y) {
                 PixelWork work = {};
                 work.x = x;
@@ -140,7 +148,7 @@ int main(int argc, char **argv) {
                 // Positive y is up in world space, but in screen (sdl) space its down
                 auto moved_y = (WINDOW_WIDTH / 2) - y;
 
-                const int NUM_SAMPLES = 4096;
+                const int NUM_SAMPLES = 1024;
                 for (auto i = 0; i < NUM_SAMPLES; i++) {
                     work.pixelColor = work.pixelColor + shootRayforPixel(moved_x, moved_y, scene);
                 }
@@ -157,13 +165,16 @@ int main(int argc, char **argv) {
         }
     }
 
+    auto lastRayPerSecondOutputTime = std::chrono::steady_clock::now();
+    auto lastRayPerSecondValue = mainvariables::numberOfRaysShot.load();
+
     while (1) {
         if (SDL_PollEvent(&event) &&
             event.type == SDL_QUIT)
             break;
 
         while (pixelFutures.size() > 0 &&
-            utils::futureReady(pixelFutures.front())) {
+               utils::futureReady(pixelFutures.front())) {
             auto pixelFuture = std::move(pixelFutures.front());
             pixelFutures.pop_front();
             auto pixel = pixelFuture.get();
@@ -176,6 +187,16 @@ int main(int argc, char **argv) {
 
         SDL_Delay(10);
         SDL_RenderPresent(renderer);
+
+        // Print Rays/s
+        auto durationSinceLastWrite = 
+            std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - lastRayPerSecondOutputTime);
+        if (durationSinceLastWrite.count() > 1000) {
+            fmt::print("{} MRays/s\n", 
+                (mainvariables::numberOfRaysShot - lastRayPerSecondValue) / 1'000'000.0f);
+            lastRayPerSecondOutputTime = std::chrono::steady_clock::now();
+            lastRayPerSecondValue = mainvariables::numberOfRaysShot;
+        }
     }
 
     SDL_DestroyRenderer(renderer);
